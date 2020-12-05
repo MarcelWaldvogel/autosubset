@@ -7,6 +7,7 @@
 #      change the contents.
 # * Output @font-face rules
 
+import subprocess
 import sys
 
 
@@ -44,4 +45,18 @@ def set2ranges(s):
 
 text = sys.stdin.read().replace('\n', '')
 char_ords = set([ord(c) for c in text])
-print(set2ranges(char_ords))
+ranges = set2ranges(char_ords)
+full = sys.argv[1]
+dot = full.rindex('.')
+minus = full.find('-')
+if minus >= 0:
+    base = full[:minus]
+else:
+    base = full[:dot]
+fmt = full[dot+1:]
+subset = full[:dot] + '.subset' + full[dot:]
+subprocess.run(['pyftsubset', '--unicodes=' + ranges,
+    '--flavor=woff2', sys.argv[1]], check=True)
+print(f"""<link rel="preload" href="{subset}" as "font" type="font/woff2">
+@font-face {{ font-family: {base}; src: url({subset}) format(woff2); unicode-range: {ranges}; }}
+@font-face {{ font-family: {base}; src: url({full}) format({fmt}); }}""")
