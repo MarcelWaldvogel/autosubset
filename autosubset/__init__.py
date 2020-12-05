@@ -7,11 +7,12 @@
 #      change the contents.
 # * Output @font-face rules
 
+import argparse
 import subprocess
 import sys
 
 
-VERSION = '0.1.0'
+VERSION = '0.2.0'
 
 
 def range_string(start, end):
@@ -46,20 +47,54 @@ def set2ranges(s):
     return ','.join(ranges)
 
 
-text = sys.stdin.read().replace('\n', '')
-char_ords = set([ord(c) for c in text])
-ranges = set2ranges(char_ords)
-full = sys.argv[1]
-dot = full.rindex('.')
-minus = full.find('-')
-if minus >= 0:
-    base = full[:minus]
-else:
-    base = full[:dot]
-fmt = full[dot+1:]
-subset = full[:dot] + '.subset' + full[dot:]
-subprocess.run(['pyftsubset', '--unicodes=' + ranges,
-    '--flavor=woff2', '--with-zopfli', sys.argv[1]], check=True)
-print(f"""<link rel="preload" href="{subset}" as "font" type="font/woff2">
+def get_args():
+    parser = argparse.ArgumentParser(description="autosubset – "
+            "Automatically create an optimized subset font "
+            "using fonttool's pyftsubset")
+    parser.add_argument('--version',
+            action='version', version=VERSION)
+    parser.add_argument('--digits',
+            action='store_true',
+            help="""Also include all digits, independent of whether they
+                appear in the input. This is useful if you also have some
+                counters elsewhere.""")
+    parser.add_argument('--ascii-letters',
+            action='store_true',
+            help="""Also include a-z and A-Z, independent of whether they
+                appear in the input.""")
+    parser.add_argument('--ascii-printable',
+            action='store_true',
+            help="""Also include space to tilde (0x20-0x7f), independent of
+                whether they appear in the input.""")
+    parser.add_argument('font_file',
+            nargs='+',
+            help="""The files to subset into <basename>.subset.woff2""")
+    return parser.parse_args()
+
+
+def main():
+    args = get_args()
+    text = sys.stdin.read().replace('\n', '')
+    char_ords = set([ord(c) for c in text])
+    if args.digits:
+        char_ords = char_ords.union(range(0x30, 0x3a))
+    if args.ascii_letters:
+        char_ords = char_ords.union(range(0x41, 0x5b), range(0x61, 0x7b))
+    if args.ascii_printable:
+        char_ords = char_ords.union(range(0x20, 0x7f))
+
+    ranges = set2ranges(char_ords)
+    for full in args.font_file:
+        dot = full.rindex('.')
+        minus = full.find('-')
+        if minus >= 0:
+            base = full[:minus]
+        else:
+            base = full[:dot]
+        fmt = full[dot+1:]
+        subset = full[:dot] + '.subset' + full[dot:]
+        subprocess.run(['pyftsubset', '--unicodes=' + ranges,
+            '--flavor=woff2', '--with-zopfli', full], check=True)
+        print(f"""<link rel="preload" href="{subset}" as "font" type="font/woff2">
 @font-face {{ font-family: {base}; src: url({subset}) format(woff2); unicode-range: {ranges}; }}
 @font-face {{ font-family: {base}; src: url({full}) format({fmt}); }}""")
