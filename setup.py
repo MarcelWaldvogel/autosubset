@@ -24,7 +24,7 @@ setuptools.setup(
     version=extract_version('autosubset/__init__.py'),
     author="Marcel Waldvogel",
     author_email="marcel.waldvogel@trifence.ch",
-    description="Automatically create an optimized subset font",
+    description="Automatically create an optimized subset font using fonttool's pyftsubset",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://gitlab.com/MarcelWaldvogel/autosubset",
