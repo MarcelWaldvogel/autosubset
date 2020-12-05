@@ -56,7 +56,7 @@ else:
 fmt = full[dot+1:]
 subset = full[:dot] + '.subset' + full[dot:]
 subprocess.run(['pyftsubset', '--unicodes=' + ranges,
-    '--flavor=woff2', sys.argv[1]], check=True)
+    '--flavor=woff2', '--with-zopfli', sys.argv[1]], check=True)
 print(f"""<link rel="preload" href="{subset}" as "font" type="font/woff2">
 @font-face {{ font-family: {base}; src: url({subset}) format(woff2); unicode-range: {ranges}; }}
 @font-face {{ font-family: {base}; src: url({full}) format({fmt}); }}""")
