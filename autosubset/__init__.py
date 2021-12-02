@@ -84,6 +84,8 @@ def main():
         char_ords = char_ords.union(range(0x20, 0x7f))
 
     ranges = set2ranges(char_ords)
+    html = ""
+    css = ""
     for full in args.font_file:
         dot = full.rindex('.')
         minus = full.find('-')
@@ -95,6 +97,9 @@ def main():
         subset = full[:dot] + '.subset' + full[dot:]
         subprocess.run(['pyftsubset', '--unicodes=' + ranges,
                         '--flavor=woff2', '--with-zopfli', full], check=True)
-        print(f"""<link rel="preload" href="{subset}" as="font" type="font/woff2">
+        html += f"""
+<link rel="preload" href="{subset}" as="font" type="font/woff2">"""
+        css += f"""
 @font-face {{ font-family: {base}; src: url({subset}) format(woff2); unicode-range: {ranges}; }}
-@font-face {{ font-family: {base}; src: url({full}) format({fmt}); }}""")
+@font-face {{ font-family: {base}; src: url({full}) format({fmt}); }}"""
+    print(f"// HTML code:{html}\n// CSS code:{css}")
