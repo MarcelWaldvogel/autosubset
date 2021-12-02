@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
 
-# 0.2.0+ - [Unreleased]
+# 0.2.1 - 2021-12-02
 ## Added
 - Alias `--ascii` for `--ascii-printable`
 - XHTML compatibility
