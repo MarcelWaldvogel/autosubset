@@ -7,10 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 # 0.2.0+ - [Unreleased]
 ## Added
+- Alias `--ascii` for `--ascii-printable`
+- XHTML compatibility
 
 ## Fixed
+- `<link>` tag now with correct `as="font"`
 
 ## Changed
+- Output now groups HTML and CSS code separately
 - Version numbers of non-tagged versions now end in `.postX`, where `X` is the
   number of commits since the tag (unless overridden by `FORCE_VERSION`
   environment variable).
