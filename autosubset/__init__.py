@@ -98,7 +98,7 @@ def main():
         subprocess.run(['pyftsubset', '--unicodes=' + ranges,
                         '--flavor=woff2', '--with-zopfli', full], check=True)
         html += f"""
-<link rel="preload" href="{subset}" as="font" type="font/woff2">"""
+<link rel="preload" href="{subset}" as="font" type="font/woff2" />"""
         css += f"""
 @font-face {{ font-family: {base}; src: url({subset}) format(woff2); unicode-range: {ranges}; }}
 @font-face {{ font-family: {base}; src: url({full}) format({fmt}); }}"""
