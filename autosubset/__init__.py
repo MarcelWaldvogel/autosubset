@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# Usage: autosubset <font-file> < <used-text>
+# Usage: autosubset [options] <font-file> < <used-text>
 # * Automatically split the font file into two parts:
 #   1. The part that only provides the characters read from stdin, which will be
 #      used for the current version of the web page
@@ -62,7 +62,7 @@ def get_args():
             action='store_true',
             help="""Also include a-z and A-Z, independent of whether they
                 appear in the input.""")
-    parser.add_argument('--ascii-printable',
+    parser.add_argument('--ascii-printable', '--ascii',
             action='store_true',
             help="""Also include space to tilde (0x20-0x7f), independent of
                 whether they appear in the input.""")
