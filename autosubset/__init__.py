@@ -12,7 +12,7 @@ import subprocess
 import sys
 
 
-VERSION = '0.2.1'
+VERSION = '0.2.2'
 
 
 def range_string(start, end):
@@ -53,6 +53,9 @@ def get_args():
                                      "using fonttool's pyftsubset")
     parser.add_argument('--version',
                         action='version', version=VERSION)
+    parser.add_argument('--quiet',
+                        action='store_true',
+                        help="Suppresses the HTML+CSS output to stdout")
     parser.add_argument('--digits',
                         action='store_true',
                         help="""Also include all digits, independent of whether they
@@ -102,4 +105,5 @@ def main():
         css += f"""
 @font-face {{ font-family: {base}; src: url({subset}) format(woff2); unicode-range: {ranges}; }}
 @font-face {{ font-family: {base}; src: url({full}) format({fmt}); }}"""
-    print(f"// HTML code:{html}\n// CSS code:{css}")
+    if not args.quiet:
+        print(f"// HTML code:{html}\n// CSS code:{css}")
