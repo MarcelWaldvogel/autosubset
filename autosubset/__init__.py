@@ -8,11 +8,16 @@
 # * Output @font-face rules
 
 import argparse
+import base64
+import pathlib
+import re
 import subprocess
 import sys
 
+from fontTools import ttLib
 
-VERSION = '0.2.2'
+
+VERSION = '0.3.0'
 
 
 def range_string(start, end):
@@ -56,6 +61,9 @@ def get_args():
     parser.add_argument('--quiet',
                         action='store_true',
                         help="Suppresses the HTML+CSS output to stdout")
+    parser.add_argument('--svg',
+                        action='store_true',
+                        help="Creates output for inclusion into SVG <style> element. Suppresses all other output.")
     parser.add_argument('--digits',
                         action='store_true',
                         help="""Also include all digits, independent of whether they
@@ -89,21 +97,34 @@ def main():
     ranges = set2ranges(char_ords)
     html = ""
     css = ""
-    for full in args.font_file:
-        dot = full.rindex('.')
-        minus = full.find('-')
-        if minus >= 0:
-            base = full[:minus]
-        else:
-            base = full[:dot]
-        fmt = full[dot+1:]
-        subset = full[:dot] + '.subset' + full[dot:]
-        subprocess.run(['pyftsubset', '--unicodes=' + ranges,
-                        '--flavor=woff2', '--with-zopfli', full], check=True)
-        html += f"""
-<link rel="preload" href="{subset}" as="font" type="font/woff2" />"""
-        css += f"""
-@font-face {{ font-family: {base}; src: url({subset}) format(woff2); unicode-range: {ranges}; }}
-@font-face {{ font-family: {base}; src: url({full}) format({fmt}); }}"""
-    if not args.quiet:
-        print(f"// HTML code:{html}\n// CSS code:{css}")
+    if args.svg:
+        for full in args.font_file:
+            font = ttLib.TTFont(full)
+            basename = pathlib.PurePath(full).stem
+            fontFamilyName = font['name'].getDebugName(1)
+            fontWeight = font['name'].getDebugName(2)
+            numericWeight = font['OS/2'].usWeightClass
+            result = subprocess.run(['pyftsubset', '--output-file=/dev/stdout',
+                                     '--unicodes=' + ranges,
+                                     '--flavor=woff2', '--with-zopfli', full], check=True, capture_output=True)
+            b64 = base64.b64encode(bytes(result.stdout))
+            print(f"""@font-face{{font-family:"{fontFamilyName}";font-weight:{numericWeight};src:local("{fontFamilyName}"),url(data:font/woff2;charset=utf-8;base64,{bytes.decode(b64)})}}""")
+    else:
+        for full in args.font_file:
+            dot = full.rindex('.')
+            minus = full.find('-')
+            if minus >= 0:
+                base = full[:minus]
+            else:
+                base = full[:dot]
+            fmt = full[dot+1:]
+            subset = full[:dot] + '.subset' + full[dot:]
+            subprocess.run(['pyftsubset', '--unicodes=' + ranges,
+                            '--flavor=woff2', '--with-zopfli', full], check=True)
+            html += f"""
+    <link rel="preload" href="{subset}" as="font" type="font/woff2" />"""
+            css += f"""
+    @font-face {{ font-family: {base}; src: url({subset}) format(woff2); unicode-range: {ranges}; }}
+    @font-face {{ font-family: {base}; src: url({full}) format({fmt}); }}"""
+        if not args.quiet:
+            print(f"// HTML code:{html}\n// CSS code:{css}")
